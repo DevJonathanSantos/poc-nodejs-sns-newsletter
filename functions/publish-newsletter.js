@@ -1,7 +1,9 @@
+require("dotenv/config");
 const { SNSClient, PublishCommand } = require("@aws-sdk/client-sns");
 
 exports.handler = async (event) => {
   try {
+    console.log("testeeeeeee", process.env.MAIL_USER);
     const snsClient = new SNSClient({ region: process.env.AWS_REGION });
 
     if (process.env.IS_OFFLINE) {

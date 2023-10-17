@@ -6,6 +6,7 @@
   "dependencies": {
     "@aws-sdk/client-sns": "^3.429.0",
     "aws-sdk": "^2.1474.0",
+    "dotenv": "^16.3.1",
     "nodemailer": "^6.9.6"
   }
 }

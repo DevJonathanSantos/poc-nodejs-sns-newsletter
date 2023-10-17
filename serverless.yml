@@ -11,8 +11,8 @@ provider:
     SNS_TOPIC_SEND_NEWSLETTER: "${self:service}-${self:provider.stage}-sns-send-newsletter" # o nome do topico
     MAIL_HOST: "smtp.gmail.com" # host do seu provedor de email
     MAIL_PORT: 587 # porta do seu provedor de email
-    MAIL_USER: "jojortd1@gmail.com" # usuario do seu provedor de email
-    MAIL_PASS: "rdqm lqoy mjuc dreordqm lqoy mjuc dreo " # senha do seu provedor de email
+    #MAIL_USER: "" # usuario do seu provedor de email
+    #MAIL_PASS: "" # senha do seu provedor de email
   iamRoleStatements: # permissões
     - Effect: Allow # aplicado a todos
       Action:
