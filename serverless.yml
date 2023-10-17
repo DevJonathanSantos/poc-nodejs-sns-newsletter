@@ -1,0 +1,67 @@
+service: newsletter # nome do servico
+frameworkVersion: "3" # versao do serverless
+
+provider:
+  name: aws # nome da cloud
+  runtime: nodejs18.x # versao do nodejs
+  stage: ${opt:stage,'dev'} # estágio
+  region: ${opt:region, 'us-east-2'} # regiao do servico
+  environment:
+    SNS_ENDPOINT_LOCAL: "http://127.0.0.1:4002" # configuraçao de endpoint do serverles-offline-sns
+    SNS_TOPIC_SEND_NEWSLETTER: "${self:service}-${self:provider.stage}-sns-send-newsletter" # o nome do topico
+    MAIL_HOST: "smtp.gmail.com" # host do seu provedor de email
+    MAIL_PORT: 587 # porta do seu provedor de email
+    MAIL_USER: "jojortd1@gmail.com" # usuario do seu provedor de email
+    MAIL_PASS: "rdqm lqoy mjuc dreordqm lqoy mjuc dreo " # senha do seu provedor de email
+  iamRoleStatements: # permissões
+    - Effect: Allow # aplicado a todos
+      Action:
+        - SNS:Publish # publicar um topico
+      Resource: "*" # em todos os recursos
+
+custom:
+  serverless-offline-sns: # configurações para rodar local
+    port: 4002
+    debug: false
+  sns_arn: # configuração para montar o ARN
+    send_newsletter:
+      local: "arn:aws:sns:us-east-2:123456789012:${self:provider.environment.SNS_TOPIC_SEND_NEWSLETTER}" # localmente
+      dev: {
+          "Fn::Join":
+            [
+              "",
+              [
+                "arn:aws:sns:${self:provider.region}:",
+                { "Ref": "AWS::AccountId" },
+                ":${self:provider.environment.SNS_TOPIC_SEND_NEWSLETTER}",
+              ],
+            ],
+        } # quando subimos para AWS desenvolvimento
+
+resources: # recursos da AWS utilizados
+  Resources:
+    sendNewsletter: # nome para o recurso
+      Type: AWS::SNS::Topic # tipo do serviço
+      Properties:
+        TopicName: "${self:provider.environment.SNS_TOPIC_SEND_NEWSLETTER}" # Nome do topico
+
+functions: #lista de funçoes
+  send-email: # faz o envio do email
+    handler: functions/send-email.handler #local aonde está nosso código que será executado
+    events: #qual evento vai acionar nosso código
+      - sns: # serviço SNS
+          arn: "${self:custom.sns_arn.send_newsletter.${self:provider.stage}}" # ARN do send newsletter criado na parte de resources
+          topicName: "${self:provider.environment.SNS_TOPIC_SEND_NEWSLETTER}" # Nome do topico do send newsletter criado na parte de resources
+
+  publish-newsletter: # faz a publicação para o topico send newsletter
+    handler: functions/publish-newsletter.handler #local aonde está nosso código que será executado
+    events: #qual evento vai acionar nosso código
+      - http: #requisição http
+          path: publish-newsletter #rota
+          method: post #metodo
+    environment: # variaveis de ambiente
+      SNS_ARN: "${self:custom.sns_arn.send_newsletter.${self:provider.stage}}" # ARN do send newsletter criado na parte de resources
+
+plugins: #lista de plugin que instalamos no inicio do processo, temos que colocar eles aqui tambem
+  - serverless-offline
+  - serverless-offline-sns
